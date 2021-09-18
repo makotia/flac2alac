@@ -1,13 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 func dirwalk(dir string) []string {
@@ -41,11 +42,17 @@ func main() {
 	inputDir := os.Args[1]
 	outputDir := os.Args[2]
 	files := dirwalk(inputDir)
-	for i := 0; i < len(files); i++ {
-		fileName := files[i]
-		if strings.HasSuffix(fileName, ".flac") {
-			fmt.Println(fileName)
-			convert(fileName, outputDir)
+	flacFiles := make([]string, 0)
+	for _, file := range files {
+		if strings.HasSuffix(file, ".flac") {
+			flacFiles = append(flacFiles, file)
 		}
 	}
+	progressBar := pb.StartNew(len(flacFiles))
+	for i := 0; i < len(flacFiles); i++ {
+		fileName := flacFiles[i]
+		convert(fileName, outputDir)
+		progressBar.Increment()
+	}
+	progressBar.Finish()
 }
